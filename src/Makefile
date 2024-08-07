@@ -366,6 +366,8 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
     CFLAGS += -Werror=implicit-function-declaration
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
+    CFLAGS += -pthread -s USE_PTHREADS=1
+	CFLAGS += -s SHARED_MEMORY=1
     # -Os                        # size optimization
     # -O2                        # optimization level 2, if used, also set --memory-init-file 0
     # -sUSE_GLFW=3              # Use glfw3 library (context/input management) -> Only for linker!
