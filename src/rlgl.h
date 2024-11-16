@@ -370,7 +370,8 @@ typedef struct rlVertexBuffer {
     float *vertices;            // Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
     float *texcoords;           // Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
     float *normals;             // Vertex normal (XYZ - 3 components per vertex) (shader-location = 2)
-    unsigned char *colors;      // Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
+    // unsigned char *colors;      // Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
+    float *colors;
 #if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_33)
     unsigned int *indices;      // Vertex indices (in case vertex data comes indexed) (6 indices per quad)
 #endif
@@ -604,6 +605,7 @@ RLAPI void rlVertex2f(float x, float y);                // Define one vertex (po
 RLAPI void rlVertex3f(float x, float y, float z);       // Define one vertex (position) - 3 float
 RLAPI void rlTexCoord2f(float x, float y);              // Define one vertex (texture coordinate) - 2 float
 RLAPI void rlNormal3f(float x, float y, float z);       // Define one vertex (normal) - 3 float
+RLAPI void rlSetNormals(Vector3 normals);
 RLAPI void rlColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a); // Define one vertex (color) - 4 byte
 RLAPI void rlColor3f(float x, float y, float z);        // Define one vertex (color) - 3 float
 RLAPI void rlColor4f(float x, float y, float z, float w); // Define one vertex (color) - 4 float
@@ -1014,7 +1016,8 @@ typedef struct rlglData {
         int vertexCounter;                  // Current active render batch vertex counter (generic, used for all batches)
         float texcoordx, texcoordy;         // Current active texture coordinate (added on glVertex*())
         float normalx, normaly, normalz;    // Current active normal (added on glVertex*())
-        unsigned char colorr, colorg, colorb, colora;   // Current active color (added on glVertex*())
+        // unsigned char colorr, colorg, colorb, colora;   // Current active color (added on glVertex*())
+        float colorr, colorg, colorb, colora;
 
         int currentMatrixMode;              // Current matrix mode
         Matrix *currentMatrix;              // Current matrix pointer
@@ -1412,6 +1415,11 @@ void rlVertex2f(float x, float y) { glVertex2f(x, y); }
 void rlVertex3f(float x, float y, float z) { glVertex3f(x, y, z); }
 void rlTexCoord2f(float x, float y) { glTexCoord2f(x, y); }
 void rlNormal3f(float x, float y, float z) { glNormal3f(x, y, z); }
+void rlSetNormals(Vector3 normals) {
+    RLGL.State.normalx = normals.x;
+    RLGL.State.normaly = normals.y;
+    RLGL.State.normalz = normals.z;
+}
 void rlColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a) { glColor4ub(r, g, b, a); }
 void rlColor3f(float x, float y, float z) { glColor3f(x, y, z); }
 void rlColor4f(float x, float y, float z, float w) { glColor4f(x, y, z, w); }
@@ -1570,25 +1578,37 @@ void rlNormal3f(float x, float y, float z)
     RLGL.State.normalz = normalz;
 }
 
+void rlSetNormals(Vector3 normals) {
+    RLGL.State.normalx = normals.x;
+    RLGL.State.normaly = normals.y;
+    RLGL.State.normalz = normals.z;
+}
+
 // Define one vertex (color)
 void rlColor4ub(unsigned char x, unsigned char y, unsigned char z, unsigned char w)
 {
-    RLGL.State.colorr = x;
-    RLGL.State.colorg = y;
-    RLGL.State.colorb = z;
-    RLGL.State.colora = w;
+    float denom = 1.0f / 255.0f;
+    RLGL.State.colorr = (float)x * denom;
+    RLGL.State.colorg = (float)y * denom;
+    RLGL.State.colorb = (float)z * denom;
+    RLGL.State.colora = (float)w * denom;
 }
 
 // Define one vertex (color)
 void rlColor4f(float r, float g, float b, float a)
 {
-    rlColor4ub((unsigned char)(r*255), (unsigned char)(g*255), (unsigned char)(b*255), (unsigned char)(a*255));
+    // rlColor4ub((unsigned char)(r*255), (unsigned char)(g*255), (unsigned char)(b*255), (unsigned char)(a*255));
+    RLGL.State.colorr = r;
+    RLGL.State.colorg = g;
+    RLGL.State.colorb = b;
+    RLGL.State.colora = a;
 }
 
 // Define one vertex (color)
 void rlColor3f(float x, float y, float z)
 {
-    rlColor4ub((unsigned char)(x*255), (unsigned char)(y*255), (unsigned char)(z*255), 255);
+    // rlColor4ub((unsigned char)(x*255), (unsigned char)(y*255), (unsigned char)(z*255), 255);
+    rlColor4f(x, y, z, 1.0f);
 }
 
 #endif
@@ -2685,7 +2705,7 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
         batch.vertexBuffer[i].vertices = (float *)RL_MALLOC(bufferElements*3*4*sizeof(float));        // 3 float by vertex, 4 vertex by quad
         batch.vertexBuffer[i].texcoords = (float *)RL_MALLOC(bufferElements*2*4*sizeof(float));       // 2 float by texcoord, 4 texcoord by quad
         batch.vertexBuffer[i].normals = (float *)RL_MALLOC(bufferElements*3*4*sizeof(float));        // 3 float by vertex, 4 vertex by quad
-        batch.vertexBuffer[i].colors = (unsigned char *)RL_MALLOC(bufferElements*4*4*sizeof(unsigned char));   // 4 float by color, 4 colors by quad
+        batch.vertexBuffer[i].colors = (float *)RL_MALLOC(bufferElements*4*4*sizeof(float));   // 4 float by color, 4 colors by quad
 #if defined(GRAPHICS_API_OPENGL_33)
         batch.vertexBuffer[i].indices = (unsigned int *)RL_MALLOC(bufferElements*6*sizeof(unsigned int));      // 6 int by quad (indices)
 #endif
@@ -2878,7 +2898,7 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
 
         // Colors buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[3]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*4*sizeof(unsigned char), batch->vertexBuffer[batch->currentBuffer].colors);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*4*sizeof(float), batch->vertexBuffer[batch->currentBuffer].colors);
         //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*4*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].colors, GL_DYNAMIC_DRAW);    // Update all buffer
 
         // NOTE: glMapBuffer() causes sync issue.
