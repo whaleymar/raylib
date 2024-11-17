@@ -1423,7 +1423,7 @@ void rlSetNormals(Vector3 normals) {
 void rlColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a) { glColor4ub(r, g, b, a); }
 void rlColor3f(float x, float y, float z) { glColor3f(x, y, z); }
 void rlColor4f(float x, float y, float z, float w) {
-    TRACELOG(RL_LOG_INFO, "running rlColor4f");
+    // TRACELOG(RL_LOG_INFO, "running rlColor4f");
     glColor4f(x, y, z, w); }
 #endif
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
@@ -1600,7 +1600,7 @@ void rlColor4ub(unsigned char x, unsigned char y, unsigned char z, unsigned char
 void rlColor4f(float r, float g, float b, float a)
 {
     // rlColor4ub((unsigned char)(r*255), (unsigned char)(g*255), (unsigned char)(b*255), (unsigned char)(a*255));
-    TRACELOG(RL_LOG_INFO, "running rlColor4f");
+    // TRACELOG(RL_LOG_INFO, "running rlColor4f");
     RLGL.State.colorr = r;
     RLGL.State.colorg = g;
     RLGL.State.colorb = b;
