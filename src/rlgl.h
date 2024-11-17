@@ -1422,7 +1422,9 @@ void rlSetNormals(Vector3 normals) {
 }
 void rlColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a) { glColor4ub(r, g, b, a); }
 void rlColor3f(float x, float y, float z) { glColor3f(x, y, z); }
-void rlColor4f(float x, float y, float z, float w) { glColor4f(x, y, z, w); }
+void rlColor4f(float x, float y, float z, float w) {
+    TRACELOG(RL_LOG_INFO, "running rlColor4f");
+    glColor4f(x, y, z, w); }
 #endif
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
 // Initialize drawing mode (how to organize vertex)
@@ -1598,6 +1600,7 @@ void rlColor4ub(unsigned char x, unsigned char y, unsigned char z, unsigned char
 void rlColor4f(float r, float g, float b, float a)
 {
     // rlColor4ub((unsigned char)(r*255), (unsigned char)(g*255), (unsigned char)(b*255), (unsigned char)(a*255));
+    TRACELOG(RL_LOG_INFO, "running rlColor4f");
     RLGL.State.colorr = r;
     RLGL.State.colorg = g;
     RLGL.State.colorb = b;
@@ -2716,7 +2719,7 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
         for (int j = 0; j < (3*4*bufferElements); j++) batch.vertexBuffer[i].vertices[j] = 0.0f;
         for (int j = 0; j < (2*4*bufferElements); j++) batch.vertexBuffer[i].texcoords[j] = 0.0f;
         for (int j = 0; j < (3*4*bufferElements); j++) batch.vertexBuffer[i].normals[j] = 0.0f;
-        for (int j = 0; j < (4*4*bufferElements); j++) batch.vertexBuffer[i].colors[j] = 0;
+        for (int j = 0; j < (4*4*bufferElements); j++) batch.vertexBuffer[i].colors[j] = 0.0f;
 
         int k = 0;
 
@@ -2775,9 +2778,9 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
         // Vertex color buffer (shader-location = 3)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[3]);
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[3]);
-        glBufferData(GL_ARRAY_BUFFER, bufferElements*4*4*sizeof(unsigned char), batch.vertexBuffer[i].colors, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, bufferElements*4*4*sizeof(float), batch.vertexBuffer[i].colors, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_COLOR]);
-        glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_COLOR], 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, 0);
+        glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_COLOR], 4, GL_FLOAT, 0, 0, 0);
 
         // Fill index buffer
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[4]);
