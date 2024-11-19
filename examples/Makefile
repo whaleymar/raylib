@@ -70,8 +70,9 @@ RAYLIB_SRC_PATH       ?= ../src
 
 # Locations of raylib.h and libraylib.a/libraylib.so
 # NOTE: Those variables are only used for PLATFORM_OS: LINUX, BSD
-RAYLIB_INCLUDE_PATH   ?= /usr/local/include
-RAYLIB_LIB_PATH       ?= /usr/local/lib
+DESTDIR ?= /usr/local
+RAYLIB_INCLUDE_PATH   ?= $(DESTDIR)/include
+RAYLIB_LIB_PATH       ?= $(DESTDIR)/lib
 
 # Library type compilation: STATIC (.a) or SHARED (.so/.dll)
 RAYLIB_LIBTYPE        ?= STATIC
@@ -86,6 +87,8 @@ USE_EXTERNAL_GLFW     ?= FALSE
 # WARNING: Library is not included in raylib, it MUST be configured by users
 SDL_INCLUDE_PATH      ?= $(RAYLIB_SRC_PATH)/external/SDL2/include
 SDL_LIBRARY_PATH      ?= $(RAYLIB_SRC_PATH)/external/SDL2/lib
+SDL_LIBRARIES         ?= -lSDL2 -lSDL2main
+
 
 # Use Wayland display server protocol on Linux desktop (by default it uses X11 windowing system)
 # NOTE: This variable is only used for PLATFORM_OS: LINUX
@@ -153,11 +156,11 @@ RAYLIB_RELEASE_PATH    ?= $(RAYLIB_PATH)/src
 ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
     ifeq ($(PLATFORM_OS),WINDOWS)
         # Emscripten required variables
-		EMSDK_PATH         ?= C:/emsdk
+		EMSDK_PATH         ?= C:/raylib/emsdk
 		EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
 		CLANG_PATH          = $(EMSDK_PATH)/upstream/bin
-		PYTHON_PATH         = $(EMSDK_PATH)/python/3.9.2-1_64bit
-		NODE_PATH           = $(EMSDK_PATH)/node/14.15.5_64bit/bin
+		PYTHON_PATH         = $(EMSDK_PATH)/python/3.9.2-nuget_64bit
+		NODE_PATH           = $(EMSDK_PATH)/node/20.18.0_64bit/bin
 		export PATH         = $(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH):$$(PATH)
     endif
 endif
@@ -196,7 +199,16 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
     MAKE = mingw32-make
 endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
-    MAKE = emmake make
+    ifeq ($(OS),Windows_NT)
+        MAKE = mingw32-make
+    else
+        EMMAKE != type emmake
+        ifneq (, $(EMMAKE))
+            MAKE = emmake make
+        else
+            MAKE = mingw32-make
+        endif
+    endif
 endif
 
 # Define compiler flags: CFLAGS
@@ -253,12 +265,12 @@ endif
 # Define include paths for required headers: INCLUDE_PATHS
 # NOTE: Some external/extras libraries could be required (stb, easings...)
 #------------------------------------------------------------------------------------------------
-INCLUDE_PATHS = -I. -I$(RAYLIB_PATH)/src -I$(RAYLIB_PATH)/src/external
-
+INCLUDE_PATHS = -I. -I$(RAYLIB_PATH)/src -I$(RAYLIB_PATH)/src/external $(EXTRA_INCLUDE_PATHS)
 # Define additional directories containing required header files
+
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
     ifeq ($(PLATFORM_OS),BSD)
-        INCLUDE_PATHS += -I$(RAYLIB_INCLUDE_PATH)
+        INCLUDE_PATHS += -I$(RAYLIB_INCLUDE_PATH) -I/usr/pkg/include -I/usr/X11R7/include
     endif
     ifeq ($(PLATFORM_OS),LINUX)
         INCLUDE_PATHS += -I$(RAYLIB_INCLUDE_PATH)
@@ -391,7 +403,8 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
     ifeq ($(PLATFORM_OS),BSD)
         # Libraries for FreeBSD, OpenBSD, NetBSD, DragonFly desktop compiling
         # NOTE: Required packages: mesa-libs
-        LDLIBS = -lraylib -lGL -lpthread -lm
+        LDFLAGS += -L/usr/X11R7/lib -Wl,-R/usr/X11R7/lib
+        LDLIBS = -lraylib -lGL -lm -lpthread
 
         # On XWindow requires also below libraries
         LDLIBS += -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor
@@ -404,12 +417,12 @@ endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_SDL)
     ifeq ($(PLATFORM_OS),WINDOWS)
         # Libraries for Windows desktop compilation
-        LDLIBS = -lraylib -lSDL2 -lSDL2main -lopengl32 -lgdi32
+        LDLIBS = -lraylib $(SDL_LIBRARIES) -lopengl32 -lgdi32
     endif
     ifeq ($(PLATFORM_OS),LINUX)
         # Libraries for Debian GNU/Linux desktop compiling
         # NOTE: Required packages: libegl1-mesa-dev
-        LDLIBS = -lraylib -lSDL2 -lSDL2main -lGL -lm -lpthread -ldl -lrt
+        LDLIBS = -lraylib $(SDL_LIBRARIES) -lGL -lm -lpthread -ldl -lrt
 
         # On X11 requires also below libraries
         LDLIBS += -lX11
@@ -432,12 +445,14 @@ endif
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
     ifeq ($(PLATFORM_OS),WINDOWS)
         # Libraries for Windows desktop compilation
-        LDLIBS = ..\src\libraylib.a -lgdi32 -lwinmm -lopengl32
+        LDFLAGS += -L..\src
+        LDLIBS = -lraylib -lgdi32 -lwinmm -lopengl32
     endif
     ifeq ($(PLATFORM_OS),LINUX)
         # Libraries for Debian GNU/Linux desktop compipling
         # NOTE: Required packages: libegl1-mesa-dev
-        LDLIBS = ../src/libraylib.a -lGL -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lm -lpthread -ldl -lrt
+        LDFLAGS += -L../src
+        LDLIBS = -lraylib -lGL -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lm -lpthread -ldl -lrt
 
         # Explicit link to libc
         ifeq ($(RAYLIB_LIBTYPE),SHARED)
@@ -450,7 +465,8 @@ ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
     ifeq ($(PLATFORM_OS),OSX)
         # Libraries for Debian GNU/Linux desktop compiling
         # NOTE: Required packages: libegl1-mesa-dev
-        LDLIBS = ../src/libraylib.a -lm 
+        LDFLAGS += -L../src
+        LDLIBS = -lraylib -lm
         LDLIBS += -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
     endif
 endif
@@ -479,6 +495,7 @@ CORE = \
     core/core_automation_events \
     core/core_basic_screen_manager \
     core/core_basic_window \
+    core/core_basic_window_web \
     core/core_custom_frame_control \
     core/core_custom_logging \
     core/core_drop_files \
@@ -490,6 +507,7 @@ CORE = \
     core/core_input_mouse \
     core/core_input_mouse_wheel \
     core/core_input_multitouch \
+    core/core_input_virtual_controls \
     core/core_loading_thread \
     core/core_random_sequence \
     core/core_random_values \
@@ -519,7 +537,8 @@ SHAPES = \
     shapes/shapes_logo_raylib_anim \
     shapes/shapes_rectangle_scaling \
     shapes/shapes_splines_drawing \
-    shapes/shapes_top_down_lights
+    shapes/shapes_top_down_lights \
+    shapes/shapes_rectangle_advanced
 
 TEXTURES = \
     textures/textures_background_scrolling \
@@ -528,6 +547,7 @@ TEXTURES = \
     textures/textures_draw_tiled \
     textures/textures_fog_of_war \
     textures/textures_gif_player \
+    textures/textures_image_channel \
     textures/textures_image_drawing \
     textures/textures_image_generation \
     textures/textures_image_kernel \
@@ -545,7 +565,6 @@ TEXTURES = \
     textures/textures_sprite_button \
     textures/textures_sprite_explosion \
     textures/textures_srcrec_dstrec \
-    textures/textures_svg_loading \
     textures/textures_textured_curve \
     textures/textures_to_image
 
@@ -566,6 +585,7 @@ TEXT = \
 MODELS = \
     models/models_animation \
     models/models_billboard \
+    models/models_bone_socket \
     models/models_box_collisions \
     models/models_cubicmap \
     models/models_draw_cube_texture \
@@ -579,13 +599,16 @@ MODELS = \
     models/models_mesh_generation \
     models/models_mesh_picking \
     models/models_orthographic_projection \
+    models/models_point_rendering \
     models/models_rlgl_solar_system \
     models/models_skybox \
     models/models_waving_cubes \
-    models/models_yaw_pitch_roll
+    models/models_yaw_pitch_roll \
+    models/models_gpu_skinning
 
 SHADERS = \
     shaders/shaders_basic_lighting \
+    shaders/shaders_basic_pbr \
     shaders/shaders_custom_uniform \
     shaders/shaders_deferred_render \
     shaders/shaders_eratosthenes \
@@ -608,7 +631,8 @@ SHADERS = \
     shaders/shaders_texture_outline \
     shaders/shaders_texture_tiling \
     shaders/shaders_texture_waves \
-    shaders/shaders_write_depth
+    shaders/shaders_write_depth \
+    shaders/shaders_vertex_displacement
 
 AUDIO = \
     audio/audio_mixed_processor \
@@ -624,8 +648,12 @@ OTHERS = \
     others/embedded_files_loading \
     others/raylib_opengl_interop \
     others/raymath_vector_angle \
-    others/rlgl_compute_shader \
-    others/rlgl_standalone
+    others/rlgl_compute_shader
+
+ifeq ($(TARGET_PLATFORM), PLATFORM_DESKTOP_GFLW)
+    OTHERS += others/rlgl_standalone
+endif
+    
 
 CURRENT_MAKEFILE = $(lastword $(MAKEFILE_LIST))
 
@@ -659,6 +687,10 @@ clean:
 ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
     ifeq ($(PLATFORM_OS),WINDOWS)
 		del *.o *.exe /s
+    endif
+    ifeq ($(PLATFORM_OS),BSD)
+		find . -type f -perm -ugo+x -delete
+		rm -fv *.o
     endif
     ifeq ($(PLATFORM_OS),LINUX)
 		find . -type f -executable -delete
