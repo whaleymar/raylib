@@ -351,7 +351,8 @@ ifeq ($(RAYLIB_BUILD_MODE),RELEASE)
         CFLAGS += -Os
     endif
     ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-        CFLAGS += -O1
+        # CFLAGS += -O2
+        CFLAGS += -O2 -g
     endif
     ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
         CFLAGS += -O2
