@@ -263,6 +263,10 @@ __declspec(dllimport) unsigned int __stdcall timeEndPeriod(unsigned int uPeriod)
 #define FLAG_TOGGLE(n, f) ((n) ^= (f))
 #define FLAG_CHECK(n, f) ((n) & (f))
 
+#if defined(__cplusplus)
+namespace rl {
+#endif
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -4067,4 +4071,9 @@ const char *TextFormat(const char *text, ...)
     return currentBuffer;
 }
 
+
 #endif // !SUPPORT_MODULE_RTEXT
+
+#if defined(__cplusplus)
+}
+#endif

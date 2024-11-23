@@ -236,6 +236,10 @@
     #define GAUSSIAN_BLUR_ITERATIONS  4    // Number of box blur iterations to approximate gaussian blur
 #endif
 
+#if defined(__cplusplus)
+namespace rl {
+#endif
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -5586,3 +5590,7 @@ static Vector4 *LoadImageDataNormalized(Image image)
 }
 
 #endif      // SUPPORT_MODULE_RTEXTURES
+
+#if defined(__cplusplus)
+}
+#endif

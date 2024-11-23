@@ -289,6 +289,10 @@ typedef enum bool { false = 0, true = !false } bool;
 #define RL_BOOL_TYPE
 #endif
 
+#if defined(__cplusplus)
+namespace rl {
+#endif
+
 // Vector2, 2 components
 typedef struct Vector2 {
     float x;  // Vector x component
@@ -1854,6 +1858,7 @@ AttachAudioMixedProcessor(AudioCallback processor);  // Attach audio stream proc
 RLAPI void DetachAudioMixedProcessor(AudioCallback processor);  // Detach audio stream processor from the entire audio pipeline
 
 #if defined(__cplusplus)
+}
 }
 #endif
 

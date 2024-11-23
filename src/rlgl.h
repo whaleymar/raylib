@@ -366,6 +366,10 @@
 typedef enum bool { false = 0, true = !false } bool;
 #endif
 
+#if defined(__cplusplus)
+namespace rl {
+#endif
+
 #if !defined(RL_MATRIX_TYPE)
 // Matrix, 4x4 components, column major, OpenGL style, right handed
 typedef struct Matrix {
@@ -812,6 +816,7 @@ RLAPI void rlLoadDrawQuad(void);     // Load and draw a quad
 
 #if defined(__cplusplus)
 }
+}
 #endif
 
 #endif // RLGL_H
@@ -823,6 +828,10 @@ RLAPI void rlLoadDrawQuad(void);     // Load and draw a quad
 ************************************************************************************/
 
 #if defined(RLGL_IMPLEMENTATION)
+
+#if defined(__cplusplus)
+namespace rl {
+#endif
 
 // Expose OpenGL functions from glad in raylib
 #if defined(BUILD_LIBTYPE_SHARED)
@@ -5281,5 +5290,9 @@ static Matrix rlMatrixInvert(Matrix mat)
 
     return result;
 }
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif  // RLGL_IMPLEMENTATION

@@ -133,6 +133,10 @@
     #define MAX_MESH_VERTEX_BUFFERS  9    // Maximum vertex buffers (VBO) per mesh
 #endif
 
+#if defined(__cplusplus)
+namespace rl {
+#endif
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -6793,3 +6797,7 @@ static ModelAnimation *LoadModelAnimationsM3D(const char *fileName, int *animCou
 #endif
 
 #endif      // SUPPORT_MODULE_RMODELS
+
+#if defined(__cplusplus)
+}
+#endif

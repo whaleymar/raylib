@@ -71,6 +71,10 @@
     #define SPLINE_SEGMENT_DIVISIONS      24      // Spline segment divisions
 #endif
 
+#if defined(__cplusplus)
+namespace rl {
+#endif
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -2412,3 +2416,7 @@ static float EaseCubicInOut(float t, float b, float c, float d)
 }
 
 #endif      // SUPPORT_MODULE_RSHAPES
+
+#if defined(__cplusplus)
+}
+#endif

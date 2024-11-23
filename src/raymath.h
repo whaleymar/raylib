@@ -109,6 +109,10 @@
     #define Vector3ToFloat(vec) (Vector3ToFloatV(vec).v)
 #endif
 
+#if defined(__cplusplus)
+namespace rl {
+#endif
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -2937,5 +2941,9 @@ inline const Matrix& operator *= (Matrix& lhs, const Matrix& rhs)
 }
 //-------------------------------------------------------------------------------
 #endif  // C++ operators
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif  // RAYMATH_H
