@@ -1574,8 +1574,61 @@ void rlVertex3f(float x, float y, float z)
 // Define one vertex (position)
 void rlVertex2f(float x, float y)
 {
-    rlVertex3f(x, y, RLGL.currentBatch->currentDepth);
+    const float z = RLGL.currentBatch->currentDepth;
+    float pos[3] = {x, y, z};
+
+    // Transform provided vector if required
+    if (RLGL.State.transformRequired)
+    {
+        pos[0] = RLGL.State.transform.m0*x + RLGL.State.transform.m4*y + RLGL.State.transform.m8*z + RLGL.State.transform.m12;
+        pos[1] = RLGL.State.transform.m1*x + RLGL.State.transform.m5*y + RLGL.State.transform.m9*z + RLGL.State.transform.m13;
+        pos[2] = RLGL.State.transform.m2*x + RLGL.State.transform.m6*y + RLGL.State.transform.m10*z + RLGL.State.transform.m14;
+    }
+
+    // WARNING: We can't break primitives when launching a new batch
+    // RL_LINES comes in pairs, RL_TRIANGLES come in groups of 3 vertices and RL_QUADS come in groups of 4 vertices
+    // We must check current draw.mode when a new vertex is required and finish the batch only if the draw.mode draw.vertexCount is %2, %3 or %4
+    if (RLGL.State.vertexCounter > (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementCount*4 - 4))
+    {
+        if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_LINES) &&
+            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%2 == 0))
+        {
+            // Reached the maximum number of vertices for RL_LINES drawing
+            // Launch a draw call but keep current state for next vertices comming
+            // NOTE: We add +1 vertex to the check for security
+            rlCheckRenderBatchLimit(2 + 1);
+        }
+        else if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_TRIANGLES) &&
+            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%3 == 0))
+        {
+            rlCheckRenderBatchLimit(3 + 1);
+        }
+        else if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_QUADS) &&
+            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%4 == 0))
+        {
+            rlCheckRenderBatchLimit(4 + 1);
+        }
+    }
+
+    // if I hard-code the default vertex buffer as the only one, then I can move all the data with one memcpy and save even more overhead RESEARCH
+    // as is, each of these are individually malloc'd so I have to do 4 copies
+
+    // Add vertices
+    memcpy(&RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vertices[3*RLGL.State.vertexCounter], pos, sizeof(pos));
+
+    // Add current texcoord
+    memcpy(&RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.State.vertexCounter], &RLGL.State.texcoordx, sizeof(float) * 2);
+
+    // Add current normal
+    memcpy(&RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].normals[3*RLGL.State.vertexCounter], &RLGL.State.normalx, sizeof(float) * 3);
+
+    // Add current color
+    memcpy(&RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.State.vertexCounter], &RLGL.State.colorr, sizeof(float) * 4);
+
+    RLGL.State.vertexCounter++;
+    RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount++;
 }
+
 
 // Define one vertex (position)
 void rlVertex2i(int x, int y)
