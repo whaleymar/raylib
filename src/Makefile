@@ -352,7 +352,7 @@ ifeq ($(RAYLIB_BUILD_MODE),RELEASE)
     endif
     ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
         # CFLAGS += -O2
-        CFLAGS += -O2 -g
+        CFLAGS += -O2 -g # TODO temporarily adding debug symbols because I want an optimized raylib all the time
     endif
     ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
         CFLAGS += -O2
