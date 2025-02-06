@@ -381,15 +381,36 @@ typedef struct Matrix {
 #define RL_MATRIX_TYPE
 #endif
 
+// define structs because it makes the malloc code more readable 
+
+// XYZ
+typedef struct {
+    float vertices[3];
+} vbVertices;
+
+// UV
+typedef struct {
+    float texcoords[2];
+} vbTexcoords;
+
+// XYZ
+typedef struct {
+    float normals[3];
+} vbNormals;
+
+// RGBA
+typedef struct {
+    float colors[4];
+} vbColors;
+
 // Dynamic vertex buffers (position + texcoords + colors + indices arrays)
 typedef struct rlVertexBuffer {
     int elementCount;           // Number of elements in the buffer (QUADS)
 
-    float *vertices;            // Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
-    float *texcoords;           // Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
-    float *normals;             // Vertex normal (XYZ - 3 components per vertex) (shader-location = 2)
-    // unsigned char *colors;      // Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
-    float *colors;
+    vbVertices* vertices;
+    vbTexcoords* texcoords;
+    vbNormals* normals;
+    vbColors* colors;
 #if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_33)
     unsigned int *indices;      // Vertex indices (in case vertex data comes indexed) (6 indices per quad)
 #endif
@@ -1510,71 +1531,6 @@ void rlEnd(void)
 // NOTE: Vertex position data is the basic information required for drawing
 void rlVertex3f(float x, float y, float z)
 {
-    float tx = x;
-    float ty = y;
-    float tz = z;
-
-    // Transform provided vector if required
-    if (RLGL.State.transformRequired)
-    {
-        tx = RLGL.State.transform.m0*x + RLGL.State.transform.m4*y + RLGL.State.transform.m8*z + RLGL.State.transform.m12;
-        ty = RLGL.State.transform.m1*x + RLGL.State.transform.m5*y + RLGL.State.transform.m9*z + RLGL.State.transform.m13;
-        tz = RLGL.State.transform.m2*x + RLGL.State.transform.m6*y + RLGL.State.transform.m10*z + RLGL.State.transform.m14;
-    }
-
-    // WARNING: We can't break primitives when launching a new batch
-    // RL_LINES comes in pairs, RL_TRIANGLES come in groups of 3 vertices and RL_QUADS come in groups of 4 vertices
-    // We must check current draw.mode when a new vertex is required and finish the batch only if the draw.mode draw.vertexCount is %2, %3 or %4
-    if (RLGL.State.vertexCounter > (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementCount*4 - 4))
-    {
-        if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_LINES) &&
-            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%2 == 0))
-        {
-            // Reached the maximum number of vertices for RL_LINES drawing
-            // Launch a draw call but keep current state for next vertices comming
-            // NOTE: We add +1 vertex to the check for security
-            rlCheckRenderBatchLimit(2 + 1);
-        }
-        else if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_TRIANGLES) &&
-            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%3 == 0))
-        {
-            rlCheckRenderBatchLimit(3 + 1);
-        }
-        else if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_QUADS) &&
-            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%4 == 0))
-        {
-            rlCheckRenderBatchLimit(4 + 1);
-        }
-    }
-
-    // Add vertices
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vertices[3*RLGL.State.vertexCounter] = tx;
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vertices[3*RLGL.State.vertexCounter + 1] = ty;
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vertices[3*RLGL.State.vertexCounter + 2] = tz;
-
-    // Add current texcoord
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.State.vertexCounter] = RLGL.State.texcoordx;
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.State.vertexCounter + 1] = RLGL.State.texcoordy;
-
-    // Add current normal
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].normals[3*RLGL.State.vertexCounter] = RLGL.State.normalx;
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].normals[3*RLGL.State.vertexCounter + 1] = RLGL.State.normaly;
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].normals[3*RLGL.State.vertexCounter + 2] = RLGL.State.normalz;
-
-    // Add current color
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.State.vertexCounter] = RLGL.State.colorr;
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.State.vertexCounter + 1] = RLGL.State.colorg;
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.State.vertexCounter + 2] = RLGL.State.colorb;
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.State.vertexCounter + 3] = RLGL.State.colora;
-
-    RLGL.State.vertexCounter++;
-    RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount++;
-}
-
-// Define one vertex (position)
-void rlVertex2f(float x, float y)
-{
-    const float z = RLGL.currentBatch->currentDepth;
     float pos[3] = {x, y, z};
 
     // Transform provided vector if required
@@ -1585,10 +1541,12 @@ void rlVertex2f(float x, float y)
         pos[2] = RLGL.State.transform.m2*x + RLGL.State.transform.m6*y + RLGL.State.transform.m10*z + RLGL.State.transform.m14;
     }
 
+    rlVertexBuffer* buf = &RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer];
+
     // WARNING: We can't break primitives when launching a new batch
     // RL_LINES comes in pairs, RL_TRIANGLES come in groups of 3 vertices and RL_QUADS come in groups of 4 vertices
     // We must check current draw.mode when a new vertex is required and finish the batch only if the draw.mode draw.vertexCount is %2, %3 or %4
-    if (RLGL.State.vertexCounter > (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementCount*4 - 4))
+    if (RLGL.State.vertexCounter > (buf->elementCount*4 - 4))
     {
         if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_LINES) &&
             (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%2 == 0))
@@ -1610,20 +1568,75 @@ void rlVertex2f(float x, float y)
         }
     }
 
-    // if I hard-code the default vertex buffer as the only one, then I can move all the data with one memcpy and save even more overhead RESEARCH
-    // as is, each of these are individually malloc'd so I have to do 4 copies
-
     // Add vertices
-    memcpy(&RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vertices[3*RLGL.State.vertexCounter], pos, sizeof(pos));
+    memcpy(&buf->vertices[RLGL.State.vertexCounter], pos, sizeof(vbVertices));
 
     // Add current texcoord
-    memcpy(&RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.State.vertexCounter], &RLGL.State.texcoordx, sizeof(float) * 2);
+    memcpy(&buf->texcoords[RLGL.State.vertexCounter], &RLGL.State.texcoordx, sizeof(vbTexcoords));
 
     // Add current normal
-    memcpy(&RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].normals[3*RLGL.State.vertexCounter], &RLGL.State.normalx, sizeof(float) * 3);
+    memcpy(&buf->normals[RLGL.State.vertexCounter], &RLGL.State.normalx, sizeof(vbNormals));
 
     // Add current color
-    memcpy(&RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.State.vertexCounter], &RLGL.State.colorr, sizeof(float) * 4);
+    memcpy(&buf->colors[RLGL.State.vertexCounter], &RLGL.State.colorr, sizeof(vbColors));
+
+
+    RLGL.State.vertexCounter++;
+    RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount++;
+}
+
+// Define one vertex (position)
+void rlVertex2f(float x, float y)
+{
+    float pos[3] = {x, y, RLGL.currentBatch->currentDepth};
+
+    // Transform provided vector if required
+    // commenting this miiight break 3D drawing idk // HACK
+    // if (RLGL.State.transformRequired)
+    // {
+    //     pos[0] = RLGL.State.transform.m0*x + RLGL.State.transform.m4*y + RLGL.State.transform.m8*z + RLGL.State.transform.m12;
+    //     pos[1] = RLGL.State.transform.m1*x + RLGL.State.transform.m5*y + RLGL.State.transform.m9*z + RLGL.State.transform.m13;
+    //     pos[2] = RLGL.State.transform.m2*x + RLGL.State.transform.m6*y + RLGL.State.transform.m10*z + RLGL.State.transform.m14;
+    // }
+
+    rlVertexBuffer* buf = &RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer];
+
+    // WARNING: We can't break primitives when launching a new batch
+    // RL_LINES comes in pairs, RL_TRIANGLES come in groups of 3 vertices and RL_QUADS come in groups of 4 vertices
+    // We must check current draw.mode when a new vertex is required and finish the batch only if the draw.mode draw.vertexCount is %2, %3 or %4
+    if (RLGL.State.vertexCounter > (buf->elementCount*4 - 4))
+    {
+        if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_LINES) &&
+            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%2 == 0))
+        {
+            // Reached the maximum number of vertices for RL_LINES drawing
+            // Launch a draw call but keep current state for next vertices comming
+            // NOTE: We add +1 vertex to the check for security
+            rlCheckRenderBatchLimit(2 + 1);
+        }
+        else if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_TRIANGLES) &&
+            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%3 == 0))
+        {
+            rlCheckRenderBatchLimit(3 + 1);
+        }
+        else if ((RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode == RL_QUADS) &&
+            (RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount%4 == 0))
+        {
+            rlCheckRenderBatchLimit(4 + 1);
+        }
+    }
+
+    // Add vertices
+    memcpy(&buf->vertices[RLGL.State.vertexCounter], pos, sizeof(vbVertices));
+
+    // Add current texcoord
+    memcpy(&buf->texcoords[RLGL.State.vertexCounter], &RLGL.State.texcoordx, sizeof(vbTexcoords));
+
+    // Add current normal
+    memcpy(&buf->normals[RLGL.State.vertexCounter], &RLGL.State.normalx, sizeof(vbNormals));
+
+    // Add current color
+    memcpy(&buf->colors[RLGL.State.vertexCounter], &RLGL.State.colorr, sizeof(vbColors));
 
     RLGL.State.vertexCounter++;
     RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount++;
@@ -2819,10 +2832,11 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
     {
         batch.vertexBuffer[i].elementCount = bufferElements;
 
-        batch.vertexBuffer[i].vertices = (float *)RL_MALLOC(bufferElements*3*4*sizeof(float));        // 3 float by vertex, 4 vertex by quad
-        batch.vertexBuffer[i].texcoords = (float *)RL_MALLOC(bufferElements*2*4*sizeof(float));       // 2 float by texcoord, 4 texcoord by quad
-        batch.vertexBuffer[i].normals = (float *)RL_MALLOC(bufferElements*3*4*sizeof(float));        // 3 float by vertex, 4 vertex by quad
-        batch.vertexBuffer[i].colors = (float *)RL_MALLOC(bufferElements*4*4*sizeof(float));   // 4 float by color, 4 colors by quad
+        // 4 vertices per quad
+        batch.vertexBuffer[i].vertices = (vbVertices*)RL_MALLOC(bufferElements*4*sizeof(vbVertices));
+        batch.vertexBuffer[i].texcoords = (vbTexcoords*)RL_MALLOC(bufferElements*4*sizeof(vbTexcoords));
+        batch.vertexBuffer[i].normals = (vbNormals*)RL_MALLOC(bufferElements*4*sizeof(vbNormals));
+        batch.vertexBuffer[i].colors = (vbColors*)RL_MALLOC(bufferElements*4*sizeof(vbColors));
 #if defined(GRAPHICS_API_OPENGL_33)
         batch.vertexBuffer[i].indices = (unsigned int *)RL_MALLOC(bufferElements*6*sizeof(unsigned int));      // 6 int by quad (indices)
 #endif
@@ -2830,10 +2844,10 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
         batch.vertexBuffer[i].indices = (unsigned short *)RL_MALLOC(bufferElements*6*sizeof(unsigned short));  // 6 int by quad (indices)
 #endif
 
-        for (int j = 0; j < (3*4*bufferElements); j++) batch.vertexBuffer[i].vertices[j] = 0.0f;
-        for (int j = 0; j < (2*4*bufferElements); j++) batch.vertexBuffer[i].texcoords[j] = 0.0f;
-        for (int j = 0; j < (3*4*bufferElements); j++) batch.vertexBuffer[i].normals[j] = 0.0f;
-        for (int j = 0; j < (4*4*bufferElements); j++) batch.vertexBuffer[i].colors[j] = 0.0f;
+        for (int j = 0; j < (4*bufferElements); j++) batch.vertexBuffer[i].vertices[j] = (vbVertices){0};
+        for (int j = 0; j < (4*bufferElements); j++) batch.vertexBuffer[i].texcoords[j] = (vbTexcoords){0};
+        for (int j = 0; j < (4*bufferElements); j++) batch.vertexBuffer[i].normals[j] = (vbNormals){0};
+        for (int j = 0; j < (4*bufferElements); j++) batch.vertexBuffer[i].colors[j] = (vbColors){0};
 
         int k = 0;
 
@@ -2871,28 +2885,28 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements)
         // Vertex position buffer (shader-location = 0)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[0]);
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[0]);
-        glBufferData(GL_ARRAY_BUFFER, bufferElements*3*4*sizeof(float), batch.vertexBuffer[i].vertices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, bufferElements*4*sizeof(vbVertices), batch.vertexBuffer[i].vertices, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_POSITION]);
         glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_POSITION], 3, GL_FLOAT, 0, 0, 0);
 
         // Vertex texcoord buffer (shader-location = 1)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[1]);
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[1]);
-        glBufferData(GL_ARRAY_BUFFER, bufferElements*2*4*sizeof(float), batch.vertexBuffer[i].texcoords, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, bufferElements*4*sizeof(vbTexcoords), batch.vertexBuffer[i].texcoords, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_TEXCOORD01]);
         glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_TEXCOORD01], 2, GL_FLOAT, 0, 0, 0);
 
         // Vertex normal buffer (shader-location = 2)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[2]);
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[2]);
-        glBufferData(GL_ARRAY_BUFFER, bufferElements*3*4*sizeof(float), batch.vertexBuffer[i].normals, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, bufferElements*4*sizeof(vbNormals), batch.vertexBuffer[i].normals, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL]);
         glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL], 3, GL_FLOAT, 0, 0, 0);
 
         // Vertex color buffer (shader-location = 3)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[3]);
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[3]);
-        glBufferData(GL_ARRAY_BUFFER, bufferElements*4*4*sizeof(float), batch.vertexBuffer[i].colors, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, bufferElements*4*sizeof(vbColors), batch.vertexBuffer[i].colors, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_COLOR]);
         glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_COLOR], 4, GL_FLOAT, 0, 0, 0);
 
@@ -3000,23 +3014,19 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
 
         // Vertex positions buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[0]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*3*sizeof(float), batch->vertexBuffer[batch->currentBuffer].vertices);
-        //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*3*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].vertices, GL_DYNAMIC_DRAW);  // Update all buffer
+        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*sizeof(vbVertices), batch->vertexBuffer[batch->currentBuffer].vertices);
 
         // Texture coordinates buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[1]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*2*sizeof(float), batch->vertexBuffer[batch->currentBuffer].texcoords);
-        //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*2*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].texcoords, GL_DYNAMIC_DRAW); // Update all buffer
+        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*sizeof(vbTexcoords), batch->vertexBuffer[batch->currentBuffer].texcoords);
 
         // Normals buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[2]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*3*sizeof(float), batch->vertexBuffer[batch->currentBuffer].normals);
-        //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*3*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].normals, GL_DYNAMIC_DRAW); // Update all buffer
+        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*sizeof(vbNormals), batch->vertexBuffer[batch->currentBuffer].normals);
 
         // Colors buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[3]);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*4*sizeof(float), batch->vertexBuffer[batch->currentBuffer].colors);
-        //glBufferData(GL_ARRAY_BUFFER, sizeof(float)*4*4*batch->vertexBuffer[batch->currentBuffer].elementCount, batch->vertexBuffer[batch->currentBuffer].colors, GL_DYNAMIC_DRAW);    // Update all buffer
+        glBufferSubData(GL_ARRAY_BUFFER, 0, RLGL.State.vertexCounter*sizeof(vbColors), batch->vertexBuffer[batch->currentBuffer].colors);
 
         // NOTE: glMapBuffer() causes sync issue
         // If GPU is working with this buffer, glMapBuffer() will wait(stall) until GPU to finish its job
