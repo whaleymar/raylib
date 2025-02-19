@@ -653,6 +653,11 @@ RLAPI void rlColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigne
 RLAPI void rlColor3f(float x, float y, float z);        // Define one vertex (color) - 3 float
 RLAPI void rlColor4f(float x, float y, float z, float w); // Define one vertex (color) - 4 float
 
+// Custom shtuff:
+RLAPI float rlGetCurrentDepth();
+RLAPI void rlCheckQuadBatch();
+RLAPI void rlVertex2fNoBatchCheck(float pos[3]);
+
 //------------------------------------------------------------------------------------
 // Functions Declaration - OpenGL style functions (common to 1.1, 3.3+, ES2)
 // NOTE: This functions are used to completely abstract raylib code from OpenGL layer,
@@ -1588,16 +1593,6 @@ void rlVertex3f(float x, float y, float z)
 // Define one vertex (position)
 void rlVertex2f(float x, float y)
 {
-    float pos[3] = {x, y, RLGL.currentBatch->currentDepth};
-
-    // Transform provided vector if required
-    // commenting this miiight break 3D drawing idk // HACK
-    // if (RLGL.State.transformRequired)
-    // {
-    //     pos[0] = RLGL.State.transform.m0*x + RLGL.State.transform.m4*y + RLGL.State.transform.m8*z + RLGL.State.transform.m12;
-    //     pos[1] = RLGL.State.transform.m1*x + RLGL.State.transform.m5*y + RLGL.State.transform.m9*z + RLGL.State.transform.m13;
-    //     pos[2] = RLGL.State.transform.m2*x + RLGL.State.transform.m6*y + RLGL.State.transform.m10*z + RLGL.State.transform.m14;
-    // }
 
     rlVertexBuffer* buf = &RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer];
 
@@ -1626,6 +1621,17 @@ void rlVertex2f(float x, float y)
         }
     }
 
+    float pos[3] = {x, y, RLGL.currentBatch->currentDepth};
+
+    // Transform provided vector if required
+    // commenting this miiight break 3D drawing idk // HACK
+    // if (RLGL.State.transformRequired)
+    // {
+    //     pos[0] = RLGL.State.transform.m0*x + RLGL.State.transform.m4*y + RLGL.State.transform.m8*z + RLGL.State.transform.m12;
+    //     pos[1] = RLGL.State.transform.m1*x + RLGL.State.transform.m5*y + RLGL.State.transform.m9*z + RLGL.State.transform.m13;
+    //     pos[2] = RLGL.State.transform.m2*x + RLGL.State.transform.m6*y + RLGL.State.transform.m10*z + RLGL.State.transform.m14;
+    // }
+
     // Add vertices
     memcpy(&buf->vertices[RLGL.State.vertexCounter], pos, sizeof(vbVertices));
 
@@ -1642,6 +1648,49 @@ void rlVertex2f(float x, float y)
     RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount++;
 }
 
+float rlGetCurrentDepth() {
+    return RLGL.currentBatch->currentDepth;
+}
+
+// checks if current batch has room for another quad and issues a draw call if it doesn't
+void rlCheckQuadBatch() {
+#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+    int vCount = 17;
+    if ((RLGL.State.vertexCounter + vCount) >=
+        (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementCount*4))
+    {
+
+        // Store current primitive drawing mode and texture id
+        int currentMode = RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode;
+        int currentTexture = RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].textureId;
+
+        rlDrawRenderBatch(RLGL.currentBatch);    // NOTE: Stereo rendering is checked inside
+
+        // Restore state of last batch so we can continue adding vertices
+        RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].mode = currentMode;
+        RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].textureId = currentTexture;
+    }
+#endif
+}
+
+// call this when you've already checked the batch size with rlCheckQuadBatch
+void rlVertex2fNoBatchCheck(float pos[3]) {
+    rlVertexBuffer* buf = &RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer];
+    // Add vertices
+    memcpy(&buf->vertices[RLGL.State.vertexCounter], pos, sizeof(vbVertices));
+
+    // Add current texcoord
+    memcpy(&buf->texcoords[RLGL.State.vertexCounter], &RLGL.State.texcoordx, sizeof(vbTexcoords));
+
+    // Add current normal
+    memcpy(&buf->normals[RLGL.State.vertexCounter], &RLGL.State.normalx, sizeof(vbNormals));
+
+    // Add current color
+    memcpy(&buf->colors[RLGL.State.vertexCounter], &RLGL.State.colorr, sizeof(vbColors));
+
+    RLGL.State.vertexCounter++;
+    RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount++;
+}
 
 // Define one vertex (position)
 void rlVertex2i(int x, int y)
