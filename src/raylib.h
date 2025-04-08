@@ -172,111 +172,33 @@
 
 // Some Basic Colors
 // NOTE: Custom raylib color palette for amazing visuals on WHITE background
-#define LIGHTGRAY                                                                                                                                    \
-    CLITERAL(Color) {                                                                                                                                \
-        200, 200, 200, 255                                                                                                                           \
-    }  // Light Gray
-#define GRAY                                                                                                                                         \
-    CLITERAL(Color) {                                                                                                                                \
-        130, 130, 130, 255                                                                                                                           \
-    }  // Gray
-#define DARKGRAY                                                                                                                                     \
-    CLITERAL(Color) {                                                                                                                                \
-        80, 80, 80, 255                                                                                                                              \
-    }  // Dark Gray
-#define YELLOW                                                                                                                                       \
-    CLITERAL(Color) {                                                                                                                                \
-        253, 249, 0, 255                                                                                                                             \
-    }  // Yellow
-#define GOLD                                                                                                                                         \
-    CLITERAL(Color) {                                                                                                                                \
-        255, 203, 0, 255                                                                                                                             \
-    }  // Gold
-#define ORANGE                                                                                                                                       \
-    CLITERAL(Color) {                                                                                                                                \
-        255, 161, 0, 255                                                                                                                             \
-    }  // Orange
-#define PINK                                                                                                                                         \
-    CLITERAL(Color) {                                                                                                                                \
-        255, 109, 194, 255                                                                                                                           \
-    }  // Pink
-#define RED                                                                                                                                          \
-    CLITERAL(Color) {                                                                                                                                \
-        230, 41, 55, 255                                                                                                                             \
-    }  // Red
-#define MAROON                                                                                                                                       \
-    CLITERAL(Color) {                                                                                                                                \
-        190, 33, 55, 255                                                                                                                             \
-    }  // Maroon
-#define GREEN                                                                                                                                        \
-    CLITERAL(Color) {                                                                                                                                \
-        0, 228, 48, 255                                                                                                                              \
-    }  // Green
-#define LIME                                                                                                                                         \
-    CLITERAL(Color) {                                                                                                                                \
-        0, 158, 47, 255                                                                                                                              \
-    }  // Lime
-#define DARKGREEN                                                                                                                                    \
-    CLITERAL(Color) {                                                                                                                                \
-        0, 117, 44, 255                                                                                                                              \
-    }  // Dark Green
-#define SKYBLUE                                                                                                                                      \
-    CLITERAL(Color) {                                                                                                                                \
-        102, 191, 255, 255                                                                                                                           \
-    }  // Sky Blue
-#define BLUE                                                                                                                                         \
-    CLITERAL(Color) {                                                                                                                                \
-        0, 121, 241, 255                                                                                                                             \
-    }  // Blue
-#define DARKBLUE                                                                                                                                     \
-    CLITERAL(Color) {                                                                                                                                \
-        0, 82, 172, 255                                                                                                                              \
-    }  // Dark Blue
-#define PURPLE                                                                                                                                       \
-    CLITERAL(Color) {                                                                                                                                \
-        200, 122, 255, 255                                                                                                                           \
-    }  // Purple
-#define VIOLET                                                                                                                                       \
-    CLITERAL(Color) {                                                                                                                                \
-        135, 60, 190, 255                                                                                                                            \
-    }  // Violet
-#define DARKPURPLE                                                                                                                                   \
-    CLITERAL(Color) {                                                                                                                                \
-        112, 31, 126, 255                                                                                                                            \
-    }  // Dark Purple
-#define BEIGE                                                                                                                                        \
-    CLITERAL(Color) {                                                                                                                                \
-        211, 176, 131, 255                                                                                                                           \
-    }  // Beige
-#define BROWN                                                                                                                                        \
-    CLITERAL(Color) {                                                                                                                                \
-        127, 106, 79, 255                                                                                                                            \
-    }  // Brown
-#define DARKBROWN                                                                                                                                    \
-    CLITERAL(Color) {                                                                                                                                \
-        76, 63, 47, 255                                                                                                                              \
-    }  // Dark Brown
+#define LIGHTGRAY CLITERAL(Color){200, 200, 200, 255}  // Light Gray
+#define GRAY CLITERAL(Color){130, 130, 130, 255}  // Gray
+#define DARKGRAY CLITERAL(Color){80, 80, 80, 255}  // Dark Gray
+#define YELLOW CLITERAL(Color){253, 249, 0, 255}  // Yellow
+#define GOLD CLITERAL(Color){255, 203, 0, 255}  // Gold
+#define ORANGE CLITERAL(Color){255, 161, 0, 255}  // Orange
+#define PINK CLITERAL(Color){255, 109, 194, 255}  // Pink
+#define RED CLITERAL(Color){230, 41, 55, 255}  // Red
+#define MAROON CLITERAL(Color){190, 33, 55, 255}  // Maroon
+#define GREEN CLITERAL(Color){0, 228, 48, 255}  // Green
+#define LIME CLITERAL(Color){0, 158, 47, 255}  // Lime
+#define DARKGREEN CLITERAL(Color){0, 117, 44, 255}  // Dark Green
+#define SKYBLUE CLITERAL(Color){102, 191, 255, 255}  // Sky Blue
+#define BLUE CLITERAL(Color){0, 121, 241, 255}  // Blue
+#define DARKBLUE CLITERAL(Color){0, 82, 172, 255}  // Dark Blue
+#define PURPLE CLITERAL(Color){200, 122, 255, 255}  // Purple
+#define VIOLET CLITERAL(Color){135, 60, 190, 255}  // Violet
+#define DARKPURPLE CLITERAL(Color){112, 31, 126, 255}  // Dark Purple
+#define BEIGE CLITERAL(Color){211, 176, 131, 255}  // Beige
+#define BROWN CLITERAL(Color){127, 106, 79, 255}  // Brown
+#define DARKBROWN CLITERAL(Color){76, 63, 47, 255}  // Dark Brown
 
-#define WHITE                                                                                                                                        \
-    CLITERAL(Color) {                                                                                                                                \
-        255, 255, 255, 255                                                                                                                           \
-    }  // White
-#define BLACK                                                                                                                                        \
-    CLITERAL(Color) {                                                                                                                                \
-        0, 0, 0, 255                                                                                                                                 \
-    }  // Black
-#define BLANK                                                                                                                                        \
-    CLITERAL(Color) {                                                                                                                                \
-        0, 0, 0, 0                                                                                                                                   \
-    }  // Blank (Transparent)
-#define MAGENTA                                                                                                                                      \
-    CLITERAL(Color) {                                                                                                                                \
-        255, 0, 255, 255                                                                                                                             \
-    }  // Magenta
-#define RAYWHITE                                                                                                                                     \
-    CLITERAL(Color) {                                                                                                                                \
-        245, 245, 245, 255                                                                                                                           \
-    }  // My own White (raylib logo)
+#define WHITE CLITERAL(Color){255, 255, 255, 255}  // White
+#define BLACK CLITERAL(Color){0, 0, 0, 255}  // Black
+#define BLANK CLITERAL(Color){0, 0, 0, 0}  // Blank (Transparent)
+#define MAGENTA CLITERAL(Color){255, 0, 255, 255}  // Magenta
+#define RAYWHITE CLITERAL(Color){245, 245, 245, 255}  // My own White (raylib logo)
 
 //----------------------------------------------------------------------------------
 // Structures Definition
@@ -861,29 +783,31 @@ typedef enum {
     SHADER_LOC_VERTEX_NORMAL,        // Shader location: vertex attribute: normal
     SHADER_LOC_VERTEX_TANGENT,       // Shader location: vertex attribute: tangent
     SHADER_LOC_VERTEX_COLOR,         // Shader location: vertex attribute: color
-    SHADER_LOC_MATRIX_MVP,           // Shader location: matrix uniform: model-view-projection
-    SHADER_LOC_MATRIX_VIEW,          // Shader location: matrix uniform: view (camera transform)
-    SHADER_LOC_MATRIX_PROJECTION,    // Shader location: matrix uniform: projection
-    SHADER_LOC_MATRIX_MODEL,         // Shader location: matrix uniform: model (transform)
-    SHADER_LOC_MATRIX_NORMAL,        // Shader location: matrix uniform: normal
-    SHADER_LOC_VECTOR_VIEW,          // Shader location: vector uniform: view
-    SHADER_LOC_COLOR_DIFFUSE,        // Shader location: vector uniform: diffuse color
-    SHADER_LOC_COLOR_SPECULAR,       // Shader location: vector uniform: specular color
-    SHADER_LOC_COLOR_AMBIENT,        // Shader location: vector uniform: ambient color
-    SHADER_LOC_MAP_ALBEDO,           // Shader location: sampler2d texture: albedo (same as: SHADER_LOC_MAP_DIFFUSE)
-    SHADER_LOC_MAP_METALNESS,        // Shader location: sampler2d texture: metalness (same as: SHADER_LOC_MAP_SPECULAR)
-    SHADER_LOC_MAP_NORMAL,           // Shader location: sampler2d texture: normal
-    SHADER_LOC_MAP_ROUGHNESS,        // Shader location: sampler2d texture: roughness
-    SHADER_LOC_MAP_OCCLUSION,        // Shader location: sampler2d texture: occlusion
-    SHADER_LOC_MAP_EMISSION,         // Shader location: sampler2d texture: emission
-    SHADER_LOC_MAP_HEIGHT,           // Shader location: sampler2d texture: height
-    SHADER_LOC_MAP_CUBEMAP,          // Shader location: samplerCube texture: cubemap
-    SHADER_LOC_MAP_IRRADIANCE,       // Shader location: samplerCube texture: irradiance
-    SHADER_LOC_MAP_PREFILTER,        // Shader location: samplerCube texture: prefilter
-    SHADER_LOC_MAP_BRDF,             // Shader location: sampler2d texture: brdf
-    SHADER_LOC_VERTEX_BONEIDS,       // Shader location: vertex attribute: boneIds
-    SHADER_LOC_VERTEX_BONEWEIGHTS,   // Shader location: vertex attribute: boneWeights
-    SHADER_LOC_BONE_MATRICES         // Shader location: array of matrices uniform: boneMatrices
+    SHADER_LOC_VERTEX_CUSTOM0,
+    SHADER_LOC_VERTEX_CUSTOM1,
+    SHADER_LOC_MATRIX_MVP,          // Shader location: matrix uniform: model-view-projection
+    SHADER_LOC_MATRIX_VIEW,         // Shader location: matrix uniform: view (camera transform)
+    SHADER_LOC_MATRIX_PROJECTION,   // Shader location: matrix uniform: projection
+    SHADER_LOC_MATRIX_MODEL,        // Shader location: matrix uniform: model (transform)
+    SHADER_LOC_MATRIX_NORMAL,       // Shader location: matrix uniform: normal
+    SHADER_LOC_VECTOR_VIEW,         // Shader location: vector uniform: view
+    SHADER_LOC_COLOR_DIFFUSE,       // Shader location: vector uniform: diffuse color
+    SHADER_LOC_COLOR_SPECULAR,      // Shader location: vector uniform: specular color
+    SHADER_LOC_COLOR_AMBIENT,       // Shader location: vector uniform: ambient color
+    SHADER_LOC_MAP_ALBEDO,          // Shader location: sampler2d texture: albedo (same as: SHADER_LOC_MAP_DIFFUSE)
+    SHADER_LOC_MAP_METALNESS,       // Shader location: sampler2d texture: metalness (same as: SHADER_LOC_MAP_SPECULAR)
+    SHADER_LOC_MAP_NORMAL,          // Shader location: sampler2d texture: normal
+    SHADER_LOC_MAP_ROUGHNESS,       // Shader location: sampler2d texture: roughness
+    SHADER_LOC_MAP_OCCLUSION,       // Shader location: sampler2d texture: occlusion
+    SHADER_LOC_MAP_EMISSION,        // Shader location: sampler2d texture: emission
+    SHADER_LOC_MAP_HEIGHT,          // Shader location: sampler2d texture: height
+    SHADER_LOC_MAP_CUBEMAP,         // Shader location: samplerCube texture: cubemap
+    SHADER_LOC_MAP_IRRADIANCE,      // Shader location: samplerCube texture: irradiance
+    SHADER_LOC_MAP_PREFILTER,       // Shader location: samplerCube texture: prefilter
+    SHADER_LOC_MAP_BRDF,            // Shader location: sampler2d texture: brdf
+    SHADER_LOC_VERTEX_BONEIDS,      // Shader location: vertex attribute: boneIds
+    SHADER_LOC_VERTEX_BONEWEIGHTS,  // Shader location: vertex attribute: boneWeights
+    SHADER_LOC_BONE_MATRICES        // Shader location: array of matrices uniform: boneMatrices
 } ShaderLocationIndex;
 
 #define SHADER_LOC_MAP_DIFFUSE SHADER_LOC_MAP_ALBEDO
